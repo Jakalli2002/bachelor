@@ -1,3 +1,6 @@
+from pathlib import Path
+
+
 # -------------------- CONFIG --------------------
 # general configuration for all modules
 # four groups: PATHS, EXPERIMENT DESIGN, CLASSIC, BERT
@@ -10,6 +13,9 @@
 
 
 # -------------------- PATHS --------------------
+BASE_DIR = Path(__file__).resolve().parent.parent # set the bachelor directory as base dir. path is based from the location of this file
+TRAINING_PATH = BASE_DIR / "data" / "train.csv"
+TEST_PATH = BASE_DIR / "data" / "test.csv"
 
 
 
