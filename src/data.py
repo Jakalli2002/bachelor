@@ -18,13 +18,13 @@ def split_csv(path: Path) -> list:
 
 
 # -------------------- LOAD DATA --------------------
-# load training data
+# load training data from CSV to DataFrame
 def load_train() -> pd.DataFrame:
     correct_train = split_csv(TRAINING_PATH)
     train_df = pd.DataFrame(correct_train, columns=["category", "text"])
     return train_df
 
-# load test data
+# load test data from CSV to DataFrame
 def load_test() -> pd.DataFrame:
     correct_test = split_csv(TEST_PATH)
     test_df = pd.DataFrame(correct_test, columns=["category", "text"])
