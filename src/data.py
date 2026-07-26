@@ -18,21 +18,19 @@ def split_csv(path: Path) -> list:
 
 
 # -------------------- LOAD DATA --------------------
-# load training data from CSV to DataFrame
-def load_train() -> pd.DataFrame:
-    correct_train = split_csv(TRAINING_PATH)
-    train_df = pd.DataFrame(correct_train, columns=["category", "text"])
-    return train_df
+def load_data(path: Path) -> pd.DataFrame:
+    ordered_data = split_csv(path)
+    df = pd.DataFrame(ordered_data, columns=["category", "text"])
+    return df
 
-# load test data from CSV to DataFrame
-def load_test() -> pd.DataFrame:
-    correct_test = split_csv(TEST_PATH)
-    test_df = pd.DataFrame(correct_test, columns=["category", "text"])
-    return test_df
+
+# -------------------- INIT DF --------------------
+train_df = load_data(TRAINING_PATH)
+test_df = load_data(TEST_PATH)
 
 
 # -------------------- CHECKS --------------------
 print("--- TRAIN-DATA ---")
-print(load_train())
+print(train_df)
 print("\n--- TEST-DATA ---")
-print(load_test())
+print(test_df)
