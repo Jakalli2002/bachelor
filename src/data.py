@@ -1,5 +1,4 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from pathlib import Path
 from config import TRAINING_PATH, TEST_PATH
 
@@ -27,13 +26,19 @@ def load_data(path: Path) -> pd.DataFrame:
 
 
 # -------------------- GET SUBSET OF TRAINING-DATA --------------------
-# creates a subset of the trainigdata dataframe (10%, 20%...) for the model training with a given percentage of the traininddata
-# uses stratify to keep the category distribution
-# uses a seed to ensure reproducibility
 def get_data_subset(size: float, seed: int) -> pd.DataFrame:
     """
+    creates a subset from the training-data. uses stratify so the distribution of the category stays the same to keep clean data
     
+    Args:
+        size: a float which determines the size of the subset (0.1 = 10%, 1 = 100%)
+        seed: a int, which is set in the config.py, so it is reproduceable
+
+    Returns:
+        DataFrame: a subset of a given % from the trainig-data dataframe
     """
+    subset = train_df.groupby("category", group_keys=False).sample(frac=size, random_state=seed)
+    return subset
 
 
 
@@ -46,16 +51,24 @@ test_df = load_data(TEST_PATH)
 # -------------------- CHECKS --------------------
 print("--- TRAIN-DATA ---")
 print(train_df)
-print("\n--- TEST-DATA ---")
-print(test_df)
+#print("\n--- TEST-DATA ---")
+#print(test_df)
 
 
 # -------------------- STATS --------------------
 print("\n-- TRAIN-DATA-CATEGORY-DIST --")
 print(train_df["category"].value_counts())
-print("\n-- TEST-DATA-CATEGORY-DIST --")
-print(test_df["category"].value_counts())
-print("\n-- TRAIN-DATA-ARTICLE-LENGTH-MEAN-(CHARACTERS) --")
-print(round(train_df["text"].str.len().mean()))
-print("\n-- TEST-DATA-ARTICLE-LENGTH-MEAN-(CHARACTERS) --")
-print(round(test_df["text"].str.len().mean()))
+#print("\n-- TEST-DATA-CATEGORY-DIST --")
+#print(test_df["category"].value_counts())
+#print("\n-- TRAIN-DATA-ARTICLE-LENGTH-MEAN-(CHARACTERS) --")
+#print(round(train_df["text"].str.len().mean()))
+#print("\n-- TEST-DATA-ARTICLE-LENGTH-MEAN-(CHARACTERS) --")
+#print(round(test_df["text"].str.len().mean()))
+
+
+# -------------------- CHECK SUBSET --------------------
+train_subset = get_data_subset(0.1, 1)
+print("--- TRAIN-DATA-SUBSET ---")
+print(train_subset)
+print("\n-- TRAIN-DATA-SUBSET-CATEGORY-DIST --")
+print(train_subset["category"].value_counts())
