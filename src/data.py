@@ -48,15 +48,15 @@ test_df = load_data(TEST_PATH)
 
 
 # -------------------- CHECKS --------------------
-print("--- TRAIN-DATA ---")
-print(train_df)
+#print("--- TRAIN-DATA ---")
+#print(train_df)
 #print("\n--- TEST-DATA ---")
 #print(test_df)
 
 
 # -------------------- STATS --------------------
-print("\n-- TRAIN-DATA-CATEGORY-DIST --")
-print(train_df["category"].value_counts())
+#print("\n-- TRAIN-DATA-CATEGORY-DIST --")
+#print(train_df["category"].value_counts())
 #print("\n-- TEST-DATA-CATEGORY-DIST --")
 #print(test_df["category"].value_counts())
 #print("\n-- TRAIN-DATA-ARTICLE-LENGTH-MEAN-(CHARACTERS) --")
@@ -67,7 +67,7 @@ print(train_df["category"].value_counts())
 
 # -------------------- CHECK SUBSET --------------------
 train_subset = get_data_subset(train_df ,0.1, 1)
-print("\n--- TRAIN-DATA-SUBSET ---")
-print(train_subset)
-print("\n-- TRAIN-DATA-SUBSET-CATEGORY-DIST --")
-print(train_subset["category"].value_counts())
+#print("\n--- TRAIN-DATA-SUBSET ---")
+#print(train_subset)
+#print("\n-- TRAIN-DATA-SUBSET-CATEGORY-DIST --")
+#print(train_subset["category"].value_counts())
