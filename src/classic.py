@@ -1,3 +1,6 @@
+"""
+classic approach: preprocessing and lemmatization (one time, cached in processed folder) -> vectorization (tf-idf) and model run (logistic regression)
+"""
 import re
 import nltk
 import pandas as pd
@@ -14,19 +17,26 @@ tagger = ht.HanoverTagger("morphmodel_ger.pgz")
 german_stopwords = set(stopwords.words("german"))
 
 
-
 # -------------------- PREPROCESSING --------------------
 def preprocessing(text: str) -> str:
     """
-    takes in a text, preprocesses it and retruns the preprocessed lemmatization of that text
+    takes in a text, preprocesses it and returns the lemmatized text as a string.
+
+    steps: split into sentences (nltk) -> tokenize each sentence (nltk) ->
+    tag and lemmatize with HanTa -> drop stopwords and non-words -> join lemmas.
+
+    tagging is done per sentence because HanTa uses the sentence context to
+    determine the part of speech, which the lemma depends on.
+    no lowercasing here: capitalization is a signal for nouns in german and helps
+    the tagger. lowercasing happens later in the TfidfVectorizer (lowercase=True).
     """
     collector = []
     for sentence in nltk.sent_tokenize(text, language="german"): # turns text into sentence tokens
         tokens = nltk.word_tokenize(sentence, language="german") # turns sentence tokens into word tokens
         for _, lemma, _ in tagger.tag_sent(tokens):
-            if lemma.lower() in german_stopwords:
+            if lemma.lower() in german_stopwords: # filters stopwords
                 continue
-            if not re.match(r"^\w+$", lemma):
+            if not re.match(r"^\w+$", lemma): # filters punctuation marks
                 continue
             collector.append(lemma)
 
@@ -59,9 +69,12 @@ def get_preprocessed(df: pd.DataFrame, cache_path) -> pd.DataFrame:
 # -------------------- VECTORIZE AND MODEL --------------------
 def vectorize(train_lemmas, test_lemmas):
     """
-    Turns the lemmatized texts into TF-IDF vectors.
+    turns the lemmatized texts into TF-IDF vectors.
+    the vocabulary and idf weights are fitted on the training subset only, so the
+    vocabulary size depends on the amount of training data (which is what the
+    learning curve measures) and no test data leaks into the model.
     """
-    vectorizer = TfidfVectorizer(min_df=MIN_DF, max_features=MAX_FEATURES)
+    vectorizer = TfidfVectorizer(min_df=MIN_DF, max_features=MAX_FEATURES, lowercase=True)
     X_train = vectorizer.fit_transform(train_lemmas)
     X_test = vectorizer.transform(test_lemmas)
     return X_train, X_test
@@ -69,6 +82,7 @@ def vectorize(train_lemmas, test_lemmas):
 def run_classic(train_lemmas, train_labels, test_lemmas):
     """
     runs the logistic regression model from sklearn (vectorize -> train -> predict). returns the predicted categories for the test set.
+    metrics are calculated in experiment.py. with 9 categories sklearn automatically uses multinomial logistic regression (softmax).
     """
     X_train, X_test = vectorize(train_lemmas, test_lemmas)
 
@@ -79,53 +93,30 @@ def run_classic(train_lemmas, train_labels, test_lemmas):
 
 
 # -------------------- TESTING --------------------
-# lemmatizing
-"""
 if __name__ == "__main__":
     import time
-    from data import load_data
-    from config import TRAINING_PATH
-
-    train_df = load_data(TRAINING_PATH)
-    artikel_liste = train_df["text"].head(20).tolist()
-
-    start = time.perf_counter()
-    for a in artikel_liste:
-        preprocessing(a)
-    dauer = time.perf_counter() - start
-
-    print(f"{dauer/20:.3f}s pro Artikel  →  {dauer/20 * 10273 / 60:.1f} min gesamt")
-
-    print("\nORIGINAL:\n", artikel_liste[0][:300])
-    print("\nLEMMATISIERT:\n", preprocessing(artikel_liste[0])[:300])
-"""
-
-# save/load df
-"""
-if __name__ == "__main__":
-    from data import load_data
-    from config import TRAINING_PATH, TEST_PATH, TRAIN_LEMMAS_PATH, TEST_LEMMAS_PATH
-
-    train_df = get_preprocessed(load_data(TRAINING_PATH), TRAIN_LEMMAS_PATH)
-    test_df = get_preprocessed(load_data(TEST_PATH), TEST_LEMMAS_PATH)
-
-    print(train_df.shape, test_df.shape)
-    print(train_df.columns.tolist())
-    print("\nORIGINAL:\n", train_df["text"].iloc[0][:200])
-    print("\nLEMMAS:\n", train_df["lemmas"].iloc[0][:200])
-"""
-
-# model
-if __name__ == "__main__":
     from data import load_data, get_data_subset
     from config import TRAINING_PATH, TEST_PATH, TRAIN_LEMMAS_PATH, TEST_LEMMAS_PATH
 
     train_df = get_preprocessed(load_data(TRAINING_PATH), TRAIN_LEMMAS_PATH)
     test_df = get_preprocessed(load_data(TEST_PATH), TEST_LEMMAS_PATH)
 
-    subset = get_data_subset(train_df, 1.0, 1)
-    preds = run_classic(subset["lemmas"], subset["category"], test_df["lemmas"])
+    # dataframes
+    print(train_df.shape, test_df.shape)
+    print(train_df.columns.tolist())
+    print("\nORIGINAL:\n", train_df["text"].iloc[0][:200])
+    print("\nLEMMAS:\n", train_df["lemmas"].iloc[0][:200])
 
-    print("Trainingsartikel:", len(subset))
+    # model run
+    subset = get_data_subset(train_df, 0.1, 1)
+    start = time.perf_counter()
+    preds = run_classic(subset["lemmas"], subset["category"], test_df["lemmas"])
+    dauer = time.perf_counter() - start
+
+    print("\nTrainingsartikel:", len(subset))
     print("Accuracy:", (preds == test_df["category"]).mean())
-    print("Erste Vorhersagen:", preds[:10])
+    print(f"Dauer: {dauer:.2f}s")
+
+    # without preprocessing, for comparison
+    preds_raw = run_classic(subset["text"], subset["category"], test_df["text"])
+    print("Ohne Preprocessing:", (preds_raw == test_df["category"]).mean())

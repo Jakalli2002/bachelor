@@ -1,12 +1,17 @@
+"""
+loads the 10kGNAD csv-files into dataframes. creates subsets of the dataframes for the model runs (10%, 20%... of training-data). no preprocessing.
+"""
 import pandas as pd
 from pathlib import Path
 from config import TRAINING_PATH, TEST_PATH
 
 
-# -------------------- HELPERS --------------------
-# pandas read_csv wont work directly, because the text after the ; split in the csv also contains a ; sometimes.
-# because of that i made this helper function, where the rows are split correctly (category ; text) in a list per row. those lists are saved in the splitted_csv list 
+# -------------------- HELPERS -------------------- 
 def split_csv(path: Path) -> list:
+    """
+    pandas read_csv wont work directly because the text after the ; split in the csv-file also contains a ; sometimes. 
+    because of that i made this helper function, where the rows are split correctly (category ; text) in a list per row. those lists are saved in the splitted_csv list
+    """
     splitted_csv = []
     with open(path, "r", encoding="utf-8") as f:
         for row in f:
@@ -18,8 +23,10 @@ def split_csv(path: Path) -> list:
 
 
 # -------------------- LOAD DATA --------------------
-# load data from the 10kgnad csv into a dataframe
 def load_data(path: Path) -> pd.DataFrame:
+    """
+    load data from the 10kgnad csv-file into a dataframe
+    """
     ordered_data = split_csv(path)
     df = pd.DataFrame(ordered_data, columns=["category", "text"])
     return df
@@ -28,7 +35,8 @@ def load_data(path: Path) -> pd.DataFrame:
 # -------------------- GET SUBSET OF TRAINING-DATA --------------------
 def get_data_subset(df: pd.DataFrame, size: float, seed: int) -> pd.DataFrame:
     """
-    creates a subset from the training-data. uses stratify so the distribution of the category stays the same to keep clean data
+    creates a subset from the given dataframe. uses stratify so the distribution of the category stays the same to keep clean data.
+    runs new everytime so the 10% subset is not included in the 20% subset.
     
     Args:
         df: dataframe from which to create the subset
@@ -42,32 +50,26 @@ def get_data_subset(df: pd.DataFrame, size: float, seed: int) -> pd.DataFrame:
     return subset
 
 
-# -------------------- INIT DF --------------------
-train_df = load_data(TRAINING_PATH)
-test_df = load_data(TEST_PATH)
-
-
 # -------------------- CHECKS --------------------
-#print("--- TRAIN-DATA ---")
-#print(train_df)
-#print("\n--- TEST-DATA ---")
-#print(test_df)
+if __name__ == "__main__":
+    train_df = load_data(TRAINING_PATH)
+    test_df = load_data(TEST_PATH)
 
+    print("--- TRAIN-DATA ---")
+    print(train_df)
+    print("\n--- TEST-DATA ---")
+    print(test_df)
 
-# -------------------- STATS --------------------
-#print("\n-- TRAIN-DATA-CATEGORY-DIST --")
-#print(train_df["category"].value_counts())
-#print("\n-- TEST-DATA-CATEGORY-DIST --")
-#print(test_df["category"].value_counts())
-#print("\n-- TRAIN-DATA-ARTICLE-LENGTH-MEAN-(CHARACTERS) --")
-#print(round(train_df["text"].str.len().mean()))
-#print("\n-- TEST-DATA-ARTICLE-LENGTH-MEAN-(CHARACTERS) --")
-#print(round(test_df["text"].str.len().mean()))
+    print("\n-- TRAIN-DATA-CATEGORY-DIST --")
+    print(train_df["category"].value_counts())
+    print("\n-- TEST-DATA-CATEGORY-DIST --")
+    print(test_df["category"].value_counts())
 
+    print("\n-- ARTICLE-LENGTH-MEAN (CHARACTERS) --")
+    print("train:", round(train_df["text"].str.len().mean()))
+    print("test: ", round(test_df["text"].str.len().mean()))
 
-# -------------------- CHECK SUBSET --------------------
-#train_subset = get_data_subset(train_df ,0.1, 1)
-#print("\n--- TRAIN-DATA-SUBSET ---")
-#print(train_subset)
-#print("\n-- TRAIN-DATA-SUBSET-CATEGORY-DIST --")
-#print(train_subset["category"].value_counts())
+    train_subset = get_data_subset(train_df, 0.1, 1)
+    print("\n--- TRAIN-DATA-SUBSET (10%) ---")
+    print(train_subset.shape)
+    print(train_subset["category"].value_counts())
