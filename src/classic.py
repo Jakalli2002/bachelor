@@ -4,6 +4,9 @@ import pandas as pd
 from nltk.corpus import stopwords
 from HanTa import HanoverTagger as ht
 from tqdm import tqdm
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from config import MIN_DF, MAX_FEATURES, C_VALUE, MAX_ITER
 
 
 # -------------------- PRE LOADING --------------------
@@ -53,6 +56,28 @@ def get_preprocessed(df: pd.DataFrame, cache_path) -> pd.DataFrame:
     return result
 
 
+# -------------------- VECTORIZE AND MODEL --------------------
+def vectorize(train_lemmas, test_lemmas):
+    """
+    Turns the lemmatized texts into TF-IDF vectors.
+    """
+    vectorizer = TfidfVectorizer(min_df=MIN_DF, max_features=MAX_FEATURES)
+    X_train = vectorizer.fit_transform(train_lemmas)
+    X_test = vectorizer.transform(test_lemmas)
+    return X_train, X_test
+
+def run_classic(train_lemmas, train_labels, test_lemmas):
+    """
+    runs the logistic regression model from sklearn (vectorize -> train -> predict). returns the predicted categories for the test set.
+    """
+    X_train, X_test = vectorize(train_lemmas, test_lemmas)
+
+    model = LogisticRegression(C=C_VALUE, max_iter=MAX_ITER)
+    model.fit(X_train, train_labels)
+
+    return model.predict(X_test)
+
+
 # -------------------- TESTING --------------------
 # lemmatizing
 """
@@ -76,7 +101,7 @@ if __name__ == "__main__":
 """
 
 # save/load df
-
+"""
 if __name__ == "__main__":
     from data import load_data
     from config import TRAINING_PATH, TEST_PATH, TRAIN_LEMMAS_PATH, TEST_LEMMAS_PATH
@@ -88,3 +113,19 @@ if __name__ == "__main__":
     print(train_df.columns.tolist())
     print("\nORIGINAL:\n", train_df["text"].iloc[0][:200])
     print("\nLEMMAS:\n", train_df["lemmas"].iloc[0][:200])
+"""
+
+# model
+if __name__ == "__main__":
+    from data import load_data, get_data_subset
+    from config import TRAINING_PATH, TEST_PATH, TRAIN_LEMMAS_PATH, TEST_LEMMAS_PATH
+
+    train_df = get_preprocessed(load_data(TRAINING_PATH), TRAIN_LEMMAS_PATH)
+    test_df = get_preprocessed(load_data(TEST_PATH), TEST_LEMMAS_PATH)
+
+    subset = get_data_subset(train_df, 1.0, 1)
+    preds = run_classic(subset["lemmas"], subset["category"], test_df["lemmas"])
+
+    print("Trainingsartikel:", len(subset))
+    print("Accuracy:", (preds == test_df["category"]).mean())
+    print("Erste Vorhersagen:", preds[:10])

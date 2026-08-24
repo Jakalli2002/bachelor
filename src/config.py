@@ -21,16 +21,16 @@ TRAIN_LEMMAS_PATH = PROCESSED_DIR / "train_lemmas.parquet"
 TEST_LEMMAS_PATH = PROCESSED_DIR / "test_lemmas.parquet"
 
 
-
-
 # -------------------- EXPERIMENT DESIGN --------------------
 
 
 
 
 # -------------------- CLASSIC --------------------
-
-
+MIN_DF = 1
+MAX_FEATURES = None
+C_VALUE = 1.0
+MAX_ITER = 1000
 
 
 # -------------------- BERT --------------------

@@ -66,7 +66,7 @@ test_df = load_data(TEST_PATH)
 
 
 # -------------------- CHECK SUBSET --------------------
-train_subset = get_data_subset(train_df ,0.1, 1)
+#train_subset = get_data_subset(train_df ,0.1, 1)
 #print("\n--- TRAIN-DATA-SUBSET ---")
 #print(train_subset)
 #print("\n-- TRAIN-DATA-SUBSET-CATEGORY-DIST --")
