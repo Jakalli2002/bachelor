@@ -102,10 +102,10 @@ if __name__ == "__main__":
     test_df = get_preprocessed(load_data(TEST_PATH), TEST_LEMMAS_PATH)
 
     # dataframes
-    print(train_df.shape, test_df.shape)
-    print(train_df.columns.tolist())
-    print("\nORIGINAL:\n", train_df["text"].iloc[0][:200])
-    print("\nLEMMAS:\n", train_df["lemmas"].iloc[0][:200])
+    #print(train_df.shape, test_df.shape)
+    #print(train_df.columns.tolist())
+    #print("\nORIGINAL:\n", train_df["text"].iloc[0][:200])
+    #print("\nLEMMAS:\n", train_df["lemmas"].iloc[0][:200])
 
     # model run
     subset = get_data_subset(train_df, 0.1, 1)
@@ -118,5 +118,5 @@ if __name__ == "__main__":
     print(f"Dauer: {dauer:.2f}s")
 
     # without preprocessing, for comparison
-    preds_raw = run_classic(subset["text"], subset["category"], test_df["text"])
-    print("Ohne Preprocessing:", (preds_raw == test_df["category"]).mean())
+    #preds_raw = run_classic(subset["text"], subset["category"], test_df["text"])
+    #print("Ohne Preprocessing:", (preds_raw == test_df["category"]).mean())
