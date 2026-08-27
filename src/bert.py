@@ -3,6 +3,8 @@ bert approach: tokenizes the raw texts with the models own subword tokenizer and
 uses the raw text column, not the lemmas, bert relies on word order, context and capitalization, all of which the classic preprocessing removes.
 """
 from datasets import Dataset
+import datasets
+from transformers import logging as hf_logging
 from transformers import AutoTokenizer
 import numpy as np
 from transformers import (
@@ -12,6 +14,11 @@ from transformers import (
     TrainingArguments,
 )
 from config import (MODEL_NAME, MAX_LENGTH, CATEGORIES, BATCH_SIZE, EPOCHS, LEARNING_RATE, WEIGHT_DECAY)
+
+
+#-------------------- DISABLE BARS --------------------
+datasets.disable_progress_bars()
+hf_logging.set_verbosity_error()
 
 
 # -------------------- PRE LOADING --------------------
@@ -61,7 +68,8 @@ def run_bert(train_texts, train_labels, test_texts, seed: int = 42):
         seed=seed,
         eval_strategy="no",
         save_strategy="no",
-        logging_steps=50,
+        disable_tqdm=True,
+        logging_strategy="no",
         report_to="none",
     )
 
