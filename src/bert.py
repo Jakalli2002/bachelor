@@ -71,6 +71,7 @@ def run_bert(train_texts, train_labels, test_texts, seed: int = 42):
         disable_tqdm=True,
         logging_strategy="no",
         report_to="none",
+        dataloader_pin_memory=False
     )
 
     trainer = Trainer(

@@ -22,7 +22,7 @@ RESULTS_PATH = RESULTS_DIR / "results.csv"
 # -------------------- EXPERIMENT DESIGN --------------------
 # fractions of the training data used per run. dense in the 0.5-1% range because the first measurements suggest the two curves cross somewhere between 1% and 10%.
 # capped at 5% for now, everything above takes too long on CPU (10% alone is ~40 min per BERT run).
-STEPS = [0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.02, 0.03, 0.04, 0.05]
+STEPS = [0.05]
 
 # one run per seed and step. the seed decides which articles end up in the subset (and for BERT also the classifier head init and the batch order).
 # the same seed is used for both approaches so they train on identical articles.
