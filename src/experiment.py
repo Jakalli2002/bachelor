@@ -83,7 +83,6 @@ def run_experiment() -> None:
             print(f"bert: acc={row['accuracy']:.4f} f1={row['f1_macro']:.4f} ({runtime:.1f}s)")
 
 
-
-
+# -------------------- TEStING --------------------
 if __name__ == "__main__":
     run_experiment()
