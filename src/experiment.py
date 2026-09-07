@@ -49,6 +49,20 @@ def build_row(approach: str, fraction: float, seed: int, subset, y_true, y_pred,
 
     return row
 
+def load_done_runs() -> set:
+    """
+    reads which runs are already in the results file, so an interrupted experiment can be continued without repeating or duplicating runs.
+    returns a set of (approach, fraction, seed) tuples.
+    """
+    if not RESULTS_PATH.exists():
+        return set()
+
+    done = set()
+    with open(RESULTS_PATH, "r", newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            done.add((row["approach"], float(row["fraction"]), int(row["seed"])))
+    return done
+
 
 # -------------------- EXPERIMENT --------------------
 def run_experiment() -> None:
@@ -61,26 +75,34 @@ def run_experiment() -> None:
     test_df = get_preprocessed(load_data(TEST_PATH), TEST_LEMMAS_PATH)
     y_true = test_df["category"].values
 
+    done = load_done_runs()
+
     for fraction in STEPS:
         for seed in SEEDS:
+            if ("classic", fraction, seed) in done and ("bert", fraction, seed) in done:
+                print(f"skip {fraction:.1%}, seed {seed} (already done)")
+                continue
+
             subset = get_data_subset(train_df, fraction, seed)
             print(f"\n=== {fraction:.1%} ({len(subset)} articles), seed {seed} ===")
 
             # classic
-            start = time.perf_counter()
-            preds = run_classic(subset["lemmas"], subset["category"], test_df["lemmas"])
-            runtime = time.perf_counter() - start
-            row = build_row("classic", fraction, seed, subset, y_true, preds, runtime)
-            write_row(row)
-            print(f"classic: acc={row['accuracy']:.4f} f1={row['f1_macro']:.4f} ({runtime:.1f}s)")
+            if ("classic", fraction, seed) not in done:
+                start = time.perf_counter()
+                preds = run_classic(subset["lemmas"], subset["category"], test_df["lemmas"])
+                runtime = time.perf_counter() - start
+                row = build_row("classic", fraction, seed, subset, y_true, preds, runtime)
+                write_row(row)
+                print(f"classic: acc={row['accuracy']:.4f} f1={row['f1_macro']:.4f} ({runtime:.1f}s)")
 
             # bert
-            start = time.perf_counter()
-            preds = run_bert(subset["text"], subset["category"], test_df["text"], seed=seed)
-            runtime = time.perf_counter() - start
-            row = build_row("bert", fraction, seed, subset, y_true, preds, runtime)
-            write_row(row)
-            print(f"bert: acc={row['accuracy']:.4f} f1={row['f1_macro']:.4f} ({runtime:.1f}s)")
+            if ("bert", fraction, seed) not in done:
+                start = time.perf_counter()
+                preds = run_bert(subset["text"], subset["category"], test_df["text"], seed=seed)
+                runtime = time.perf_counter() - start
+                row = build_row("bert", fraction, seed, subset, y_true, preds, runtime)
+                write_row(row)
+                print(f"bert: acc={row['accuracy']:.4f} f1={row['f1_macro']:.4f} ({runtime:.1f}s)")
 
 
 # -------------------- TEStING --------------------
