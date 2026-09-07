@@ -39,7 +39,7 @@ MAX_ITER = 1000 # default of 100 often stops before convergence (before the impr
 # -------------------- BERT --------------------
 MODEL_NAME = "deepset/gbert-base" # german BERT, used as reference in Chan/Schweter/Möller 2020
 MAX_LENGTH = 256 # BERT caps at 512 anyway, 42% of articles exceed even that, 77% exceed 256. attention cost grows quadratically, so 256 is roughly 4x faster than 512. news articles put the topic in the first paragraph, so the cut is acceptable.
-BATCH_SIZE = 8 # 16 for colab run
+BATCH_SIZE = 16 # 16 for colab run 8 for cpu run up to 5%
 EPOCHS = 3 # standard range for BERT fine-tuning (Sun et al. 2019 use 4)
 LEARNING_RATE = 2e-5 # standard for fine-tuning: the pretrained layers should only be nudged, not overwritten
 WEIGHT_DECAY = 0.01

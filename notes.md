@@ -117,11 +117,79 @@ klassisch 68,1 % bei 10 % und 84,9 % bei 100 %; BERT 84,1 % bei 10 %.
 - **Feste Epochenzahl** bedeutet bei kleinen Teilmengen sehr wenige Optimierungsschritte. Alternative wäre eine feste Schrittzahl. Feste Epochen sind der übliche Weg — die Alternative gehört in die Limitationen, sonst bleibt offen, ob BERT bei kleinen Mengen nur wegen zu weniger Schritte verliert.
 - **Drei Seeds** sind eine grobe Schätzung der Streuung, gerade bei BERT.
 
-## Offene Punkte
 
-- Große Stufen (10 / 25 / 50 / 100 %) nachrechnen — braucht GPU
-- Rechenleistung beschaffen (Colab, Kaggle oder gemietete Instanz)
-- Wiederaufnahme nach Abbruch in `experiment.py` ergänzen (vorhandene Kombinationen überspringen)
-- Trainingsverlust als zusätzliche Spalte in die Ergebnisdatei
-- Tabellenexport für LaTeX in `analysis.py`
-- Schreiben: LaTeX-Gerüst aufsetzen
+
+## Run 2 — finaler Lauf (07.09.2026)
+
+Maßgeblich für die Arbeit. Alle bisherigen Werte (Run 1, lokale CPU) sind damit überholt
+und dienen nur noch als Beleg für die CPU-Laufzeiten.
+
+**Setup:** Google Colab, Tesla T4 (15 GB), `BATCH_SIZE = 16` (vorher 8 auf CPU).
+14 Stufen × 3 Seeds × 2 Ansätze, Testset immer vollständig (1.028 Artikel).
+Alle Läufe auf identischer Hardware, damit die Laufzeiten vergleichbar sind.
+
+**Änderung gegenüber Run 1:** `experiment.py` hat jetzt `load_done_runs()` — bereits
+vorhandene Kombinationen aus Ansatz, Anteil und Seed werden übersprungen. Damit lässt
+sich ein abgebrochener Lauf fortsetzen, ohne Zeilen zu verlieren oder zu duplizieren.
+
+### Accuracy (Mittel ± Standardabweichung über 3 Seeds)
+
+| Anteil | Artikel | Klassisch | BERT |
+|---|---|---|---|
+| 0,5 % | 47 | 33,3 % ± 1,2 | 24,3 % ± 2,6 |
+| 0,6 % | 55 | 37,6 % ± 0,8 | 31,1 % ± 1,2 |
+| 0,7 % | 66 | 39,4 % ± 0,9 | 32,1 % ± 4,6 |
+| 0,8 % | 74 | 42,4 % ± 0,7 | 32,6 % ± 5,5 |
+| 0,9 % | 83 | 40,6 % ± 1,8 | 30,1 % ± 1,8 |
+| 1,0 % | 93 | 47,7 % ± 1,4 | 32,7 % ± 3,0 |
+| 2,0 % | 184 | 54,1 % ± 1,1 | 48,8 % ± 3,9 |
+| 3,0 % | 276 | 57,8 % ± 1,1 | 61,3 % ± 2,6 |
+| 4,0 % | 369 | 61,5 % ± 0,3 | 64,7 % ± 5,7 |
+| 5,0 % | 463 | 62,5 % ± 0,1 | 72,7 % ± 1,8 |
+| 10,0 % | 924 | 67,3 % ± 0,7 | 82,7 % ± 0,6 |
+| 25,0 % | 2.311 | 77,2 % ± 1,2 | 88,0 % ± 0,7 |
+| 50,0 % | 4.620 | 82,4 % ± 0,8 | 88,9 % ± 0,4 |
+| 100,0 % | 9.245 | 84,9 % ± 0,0 | 90,7 % ± 0,7 |
+
+### Macro-F1 (Auswahl)
+
+| Anteil | Klassisch | BERT |
+|---|---|---|
+| 0,5 % | 16,8 % | 12,6 % |
+| 1,0 % | 31,6 % | 20,4 % |
+| 2,0 % | 38,1 % | 35,0 % |
+| 3,0 % | 42,1 % | 48,4 % |
+| 5,0 % | 47,3 % | 64,4 % |
+| 10,0 % | 54,9 % | 81,3 % |
+| 25,0 % | 74,5 % | 87,7 % |
+| 50,0 % | 81,7 % | 88,6 % |
+| 100,0 % | 84,4 % | 90,2 % |
+
+### Laufzeit pro Lauf (Sekunden, T4)
+
+| Anteil | Klassisch | BERT | Faktor |
+|---|---|---|---|
+| 0,5 % | 0,3 | 25,2 | 84 |
+| 1,0 % | 0,5 | 32,4 | 65 |
+| 5,0 % | 1,9 | 89,0 | 47 |
+| 10,0 % | 2,7 | 158,7 | 59 |
+| 25,0 % | 7,1 | 372,3 | 52 |
+| 50,0 % | 13,1 | 731,7 | 56 |
+| 100,0 % | 24,3 | 1.485,7 | 61 |
+
+### Beobachtungen
+
+- **Der Schnittpunkt liegt zwischen 2 % und 3 % der Trainingsdaten** (184–276 Artikel). Bei 2 % führt der klassische Ansatz noch (54,1 gegen 48,8 %), bei 3 % dreht es (57,8 gegen 61,3 %). Beim Macro-F1 liegt der Wechsel an derselben Stelle.
+- **Die Lage des Schnittpunkts hängt von der Batch-Größe ab.** In Run 1 mit `BATCH_SIZE = 8` lag er bei rund 1 %, weil dort doppelt so viele Optimierungsschritte anfielen. Mit 16 sind es bei 93 Artikeln nur noch 18 Schritte über drei Epochen. Das gehört in die Limitationen: Die Aussage „ab X Artikeln lohnt sich BERT" gilt nur für die gewählten Trainingsparameter.
+- **Macro-F1 trennt schärfer als Accuracy.** Bei 10 % beträgt der Abstand 26 Punkte (54,9 gegen 81,3), bei der Accuracy nur 15. Der klassische Ansatz trifft dort vor allem die häufigen Kategorien und versagt bei den seltenen; BERT verteilt gleichmäßiger. Das stützt die Wahl des Macro-F1 bei unbalancierten Daten.
+- **Bei 100 % ist die Streuung des klassischen Ansatzes exakt null**, weil alle drei Seeds dieselbe Vollmenge ziehen — es gibt nichts mehr auszuwählen. Bei BERT bleiben 0,7 Punkte durch die Initialisierung des Klassifikationskopfs und die Batchreihenfolge. Sollte im Text erwähnt werden, sonst wirkt die fehlende Streuung wie ein Fehler.
+- **Die Kurven konvergieren am rechten Rand wieder.** Der Abstand wächst von 2 % bis 10 % auf gut 15 Punkte und schrumpft danach auf knapp 6 Punkte bei 100 %.
+- **BERT reproduziert die Benchmarkwerte.** 90,7 % Accuracy und 90,2 % Macro-F1 bei 100 % liegen im Bereich der publizierten Werte für gbert-base auf 10kGNAD (Chan/Schweter/Möller 2020). Das spricht für die Validität der Implementierung.
+- **Der Trainingsverlust bei BERT** liegt bei den kleinsten Stufen um 2,0 bis 2,1 (Raten entspräche ln(9) ≈ 2,197) und fällt erst ab etwa 3 % deutlich ab: 1,7 bei 3 %, 1,0 bei 10 %, 0,32 bei 100 %.
+- **Rechenaufwand:** Der Faktor zwischen beiden Ansätzen liegt durchgehend bei 47 bis 84. Bei 100 % stehen 24 Sekunden gegen knapp 25 Minuten — für gut 6 Punkte mehr Accuracy.
+
+### Offene Punkte nach Run 2
+
+- Achsenbeschriftung der Lernkurven ist noch nicht optimal (Gitter folgt den logarithmischen Ticks, wirkt ungleichmäßig)
+- Tabellen werden von Hand nach LaTeX übertragen, kein Export
+- `BATCH_SIZE = 16` muss ins Methodikkapitel und in die Limitationen
