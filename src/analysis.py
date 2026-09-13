@@ -5,6 +5,7 @@ mean and standard deviation per approach and training size, intersection between
 import matplotlib.pyplot as plt
 import pandas as pd
 from config import RESULTS_PATH, RESULTS_DIR
+from matplotlib.ticker import FuncFormatter
 
 
 # -------------------- HELPERS --------------------
@@ -35,8 +36,8 @@ def plot_learning_curves(results: pd.DataFrame) -> None:
     the x axis is logarithmic so the small steps (0.5% - 1%) are good visible.
     """
     plots = [
-        ("acc_mean", "acc_std", "Accuracy", "learning_curve_accuracy.png"),
-        ("f1_mean", "f1_std", "F1-Score (macro)", "learning_curve_f1.png"),
+        ("acc_mean", "acc_std", "Accuracy", "learning_curve_accuracy.pdf"),
+        ("f1_mean", "f1_std", "F1-Score (macro)", "learning_curve_f1.pdf"),
     ]
 
     approaches = [
@@ -56,22 +57,29 @@ def plot_learning_curves(results: pd.DataFrame) -> None:
             ax.plot(x, mean, marker="o", color=color, label=name)
             ax.fill_between(x, mean - std, mean + std, color=color, alpha=0.2)
 
-        ax.set_xscale("log")
 
-        tick_fractions = [0.005, 0.01, 0.02, 0.05, 0.10, 0.25, 0.50, 1.00]
-        ticks = results[(results["approach"] == "classic") &
-                        (results["fraction"].isin(tick_fractions))].sort_values("fraction")
-        ax.set_xticks(ticks["fraction"].values)
-        ax.set_xticklabels([f"{f:.1%}".replace(".", ",") for f in ticks["fraction"]])
+        ax.set_xscale("log")
+        
+        all_fractions = sorted(results["fraction"].unique())
+        label_at = [0.005, 0.01, 0.02, 0.05, 0.10, 0.25, 0.50, 1.00]
+
+        n_by_fraction = results.set_index("fraction")["n_train"].to_dict()
+
+        ax.set_xticks(all_fractions)
+        ax.set_xticklabels([
+            f"{f:.1%}\n({n_by_fraction[f]})".replace(".", ",") if f in label_at else ""
+            for f in all_fractions
+        ])
         ax.minorticks_off()
 
-        ax.set_xlabel("Anteil der Trainingsdaten")
+        ax.set_xlabel("Anteil der Trainingsdaten (Anzahl Artikel)")
         ax.set_ylabel(label)
-        ax.grid(axis="y", alpha=0.3)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.0%}".replace(".", ",")))
+        ax.grid(alpha=0.3)
         ax.legend()
 
         fig.tight_layout()
-        fig.savefig(RESULTS_DIR / filename, dpi=150)
+        fig.savefig(RESULTS_DIR / filename)
         plt.close(fig)
 
 
@@ -110,5 +118,6 @@ def build_tables(results: pd.DataFrame) -> None:
 # -------------------- TEStING --------------------
 if __name__ == "__main__":
     results = load_results()
-    #plot_learning_curves(results)
+    #build_tables(results)
+    plot_learning_curves(results)
     #print(build_tables(results))

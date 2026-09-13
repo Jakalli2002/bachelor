@@ -65,11 +65,11 @@ if __name__ == "__main__":
     print("\n-- TEST-DATA-CATEGORY-DIST --")
     print(test_df["category"].value_counts())
 
-    print("\n-- ARTICLE-LENGTH-MEAN (CHARACTERS) --")
-    print("train:", round(train_df["text"].str.len().mean()))
-    print("test: ", round(test_df["text"].str.len().mean()))
+    #print("\n-- ARTICLE-LENGTH-MEAN (CHARACTERS) --")
+    #print("train:", round(train_df["text"].str.len().mean()))
+    #print("test: ", round(test_df["text"].str.len().mean()))
 
-    train_subset = get_data_subset(train_df, 0.1, 1)
-    print("\n--- TRAIN-DATA-SUBSET (10%) ---")
-    print(train_subset.shape)
-    print(train_subset["category"].value_counts())
+    #train_subset = get_data_subset(train_df, 0.1, 1)
+    #print("\n--- TRAIN-DATA-SUBSET (10%) ---")
+    #print(train_subset.shape)
+    #print(train_subset["category"].value_counts())
