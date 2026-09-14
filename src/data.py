@@ -1,5 +1,5 @@
 """
-loads the 10kGNAD csv-files into dataframes. creates subsets of the dataframes for the model runs (10%, 20%... of training-data). no preprocessing.
+loads the 10kGNAD csv-files into dataframes. creates subsets of the dataframes for the model runs. no preprocessing.
 """
 import pandas as pd
 from pathlib import Path

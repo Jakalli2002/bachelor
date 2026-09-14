@@ -47,7 +47,7 @@ def make_dataset(texts, labels=None) -> Dataset:
 
 
 # -------------------- MODEL --------------------
-def run_bert(train_texts, train_labels, test_texts, seed: int = 42):
+def run_bert(train_texts, train_labels, test_texts, seed):
     train_ds = make_dataset(train_texts, train_labels)
     test_ds = make_dataset(test_texts)
 

@@ -118,6 +118,5 @@ def build_tables(results: pd.DataFrame) -> None:
 # -------------------- TEStING --------------------
 if __name__ == "__main__":
     results = load_results()
-    #build_tables(results)
+    build_tables(results)
     plot_learning_curves(results)
-    #print(build_tables(results))
